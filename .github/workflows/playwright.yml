@@ -26,7 +26,15 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Production tests
         working-directory: ./confide
-        run: npx playwright test --config=playwright.config.ci.simple.js --project=production-chrome
+        run: |
+          echo "=== Running Production Tests ==="
+          echo "Available projects:"
+          npx playwright test --config=playwright.config.ci.simple.js --list
+          echo "Running production tests..."
+          npx playwright test --config=playwright.config.ci.simple.js --project=production-chrome
+          echo "=== Test execution completed ==="
+          echo "Checking for results files:"
+          find . -name "*.json" -type f | head -10
         env:
           CI: true
       - name: Upload Production test results
@@ -56,7 +64,15 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Staging tests
         working-directory: ./confide
-        run: npx playwright test --config=playwright.config.ci.simple.js --project=staging-chrome
+        run: |
+          echo "=== Running Staging Tests ==="
+          echo "Available projects:"
+          npx playwright test --config=playwright.config.ci.simple.js --list
+          echo "Running staging tests..."
+          npx playwright test --config=playwright.config.ci.simple.js --project=staging-chrome
+          echo "=== Test execution completed ==="
+          echo "Checking for results files:"
+          find . -name "*.json" -type f | head -10
         env:
           CI: true
       - name: Upload Staging test results

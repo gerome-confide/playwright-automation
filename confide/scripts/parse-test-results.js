@@ -8,43 +8,94 @@ function parseTestResults() {
   const productionPath = 'production-results/test-results/results.json';
   const stagingPath = 'staging-results/test-results/results.json';
   
+  // Debug: List all files in the directories
+  console.log('=== DEBUGGING FILE PATHS ===');
+  console.log('Current working directory:', process.cwd());
+  
+  // Check if directories exist
+  if (fs.existsSync('production-results')) {
+    console.log('Production results directory exists');
+    const prodFiles = fs.readdirSync('production-results', { recursive: true });
+    console.log('Production files:', prodFiles);
+  } else {
+    console.log('Production results directory does not exist');
+  }
+  
+  if (fs.existsSync('staging-results')) {
+    console.log('Staging results directory exists');
+    const stagingFiles = fs.readdirSync('staging-results', { recursive: true });
+    console.log('Staging files:', stagingFiles);
+  } else {
+    console.log('Staging results directory does not exist');
+  }
+  
   let productionStats = { passed: 0, failed: 0, skipped: 0, total: 0, duration: 0 };
   let stagingStats = { passed: 0, failed: 0, skipped: 0, total: 0, duration: 0 };
   
-  // Parse production results
-  if (fs.existsSync(productionPath)) {
-    try {
-      const productionData = JSON.parse(fs.readFileSync(productionPath, 'utf8'));
-      productionStats = {
-        passed: productionData.stats?.passed || 0,
-        failed: productionData.stats?.failed || 0,
-        skipped: productionData.stats?.skipped || 0,
-        total: productionData.stats?.total || 0,
-        duration: Math.round((productionData.stats?.duration || 0) / 1000)
-      };
-    } catch (error) {
-      console.log('Error parsing production results:', error.message);
+  // Parse production results - try multiple possible paths
+  const productionPaths = [
+    'production-results/test-results/results.json',
+    'production-results/results.json',
+    'test-results/results.json'
+  ];
+  
+  let productionData = null;
+  for (const path of productionPaths) {
+    if (fs.existsSync(path)) {
+      console.log('Found production results at:', path);
+      try {
+        productionData = JSON.parse(fs.readFileSync(path, 'utf8'));
+        break;
+      } catch (error) {
+        console.log('Error parsing production results from', path, ':', error.message);
+      }
     }
-  } else {
-    console.log('Production results file not found:', productionPath);
   }
   
-  // Parse staging results
-  if (fs.existsSync(stagingPath)) {
-    try {
-      const stagingData = JSON.parse(fs.readFileSync(stagingPath, 'utf8'));
-      stagingStats = {
-        passed: stagingData.stats?.passed || 0,
-        failed: stagingData.stats?.failed || 0,
-        skipped: stagingData.stats?.skipped || 0,
-        total: stagingData.stats?.total || 0,
-        duration: Math.round((stagingData.stats?.duration || 0) / 1000)
-      };
-    } catch (error) {
-      console.log('Error parsing staging results:', error.message);
-    }
+  if (productionData) {
+    productionStats = {
+      passed: productionData.stats?.passed || 0,
+      failed: productionData.stats?.failed || 0,
+      skipped: productionData.stats?.skipped || 0,
+      total: productionData.stats?.total || 0,
+      duration: Math.round((productionData.stats?.duration || 0) / 1000)
+    };
+    console.log('Production stats parsed:', productionStats);
   } else {
-    console.log('Staging results file not found:', stagingPath);
+    console.log('No production results found in any expected location');
+  }
+  
+  // Parse staging results - try multiple possible paths
+  const stagingPaths = [
+    'staging-results/test-results/results.json',
+    'staging-results/results.json',
+    'test-results/results.json'
+  ];
+  
+  let stagingData = null;
+  for (const path of stagingPaths) {
+    if (fs.existsSync(path)) {
+      console.log('Found staging results at:', path);
+      try {
+        stagingData = JSON.parse(fs.readFileSync(path, 'utf8'));
+        break;
+      } catch (error) {
+        console.log('Error parsing staging results from', path, ':', error.message);
+      }
+    }
+  }
+  
+  if (stagingData) {
+    stagingStats = {
+      passed: stagingData.stats?.passed || 0,
+      failed: stagingData.stats?.failed || 0,
+      skipped: stagingData.stats?.skipped || 0,
+      total: stagingData.stats?.total || 0,
+      duration: Math.round((stagingData.stats?.duration || 0) / 1000)
+    };
+    console.log('Staging stats parsed:', stagingStats);
+  } else {
+    console.log('No staging results found in any expected location');
   }
   
   // Calculate overall stats
