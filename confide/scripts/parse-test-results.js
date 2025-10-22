@@ -5,8 +5,8 @@ const path = require('path');
  * Parse Playwright test results and generate detailed Slack notification
  */
 function parseTestResults() {
-  const productionPath = 'production-results/production-results.json';
-  const stagingPath = 'staging-results/staging-results.json';
+  const productionPath = 'production-results/test-results/results.json';
+  const stagingPath = 'staging-results/test-results/results.json';
   
   let productionStats = { passed: 0, failed: 0, skipped: 0, total: 0, duration: 0 };
   let stagingStats = { passed: 0, failed: 0, skipped: 0, total: 0, duration: 0 };
@@ -25,6 +25,8 @@ function parseTestResults() {
     } catch (error) {
       console.log('Error parsing production results:', error.message);
     }
+  } else {
+    console.log('Production results file not found:', productionPath);
   }
   
   // Parse staging results
@@ -41,6 +43,8 @@ function parseTestResults() {
     } catch (error) {
       console.log('Error parsing staging results:', error.message);
     }
+  } else {
+    console.log('Staging results file not found:', stagingPath);
   }
   
   // Calculate overall stats
