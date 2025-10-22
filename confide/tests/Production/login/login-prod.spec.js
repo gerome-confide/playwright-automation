@@ -143,8 +143,8 @@ test.describe.serial('Login Scenario Production', () => {
     });
 
     await test.step('Wait for Dashboard URL to Load', async () => {
-      await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/inbox');
       // await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/inbox');
+      await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/inbox');
     });
   });
 });
