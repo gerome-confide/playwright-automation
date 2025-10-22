@@ -53,14 +53,21 @@ function parseTestResults() {
   }
   
   if (productionData) {
+    // Playwright JSON format uses different field names
+    const expected = productionData.stats?.expected || 0;
+    const unexpected = productionData.stats?.unexpected || 0;
+    const skipped = productionData.stats?.skipped || 0;
+    const flaky = productionData.stats?.flaky || 0;
+    
     productionStats = {
-      passed: productionData.stats?.passed || 0,
-      failed: productionData.stats?.failed || 0,
-      skipped: productionData.stats?.skipped || 0,
-      total: productionData.stats?.total || 0,
+      passed: expected - unexpected - flaky, // passed = expected - failed - flaky
+      failed: unexpected + flaky, // failed = unexpected + flaky
+      skipped: skipped,
+      total: expected + skipped, // total = expected + skipped
       duration: Math.round((productionData.stats?.duration || 0) / 1000)
     };
     console.log('Production stats parsed:', productionStats);
+    console.log('Raw production stats:', productionData.stats);
   } else {
     console.log('No production results found in any expected location');
   }
@@ -86,14 +93,21 @@ function parseTestResults() {
   }
   
   if (stagingData) {
+    // Playwright JSON format uses different field names
+    const expected = stagingData.stats?.expected || 0;
+    const unexpected = stagingData.stats?.unexpected || 0;
+    const skipped = stagingData.stats?.skipped || 0;
+    const flaky = stagingData.stats?.flaky || 0;
+    
     stagingStats = {
-      passed: stagingData.stats?.passed || 0,
-      failed: stagingData.stats?.failed || 0,
-      skipped: stagingData.stats?.skipped || 0,
-      total: stagingData.stats?.total || 0,
+      passed: expected - unexpected - flaky, // passed = expected - failed - flaky
+      failed: unexpected + flaky, // failed = unexpected + flaky
+      skipped: skipped,
+      total: expected + skipped, // total = expected + skipped
       duration: Math.round((stagingData.stats?.duration || 0) / 1000)
     };
     console.log('Staging stats parsed:', stagingStats);
+    console.log('Raw staging stats:', stagingData.stats);
   } else {
     console.log('No staging results found in any expected location');
   }
