@@ -1,0 +1,27 @@
+# Docker Compose for Playwright Tests
+version: '3.8'
+
+services:
+  playwright-tests:
+    build: .
+    container_name: playwright-automation
+    environment:
+      - CI=true
+      - HEADLESS=true
+      - WORKERS=1
+    volumes:
+      - ./confide/test-results:/app/test-results
+      - ./confide/playwright-report:/app/playwright-report
+    command: npm run test:ci:all
+
+  # Optional: Add a web server for viewing reports
+  report-server:
+    image: nginx:alpine
+    container_name: playwright-reports
+    ports:
+      - "8080:80"
+    volumes:
+      - ./confide/playwright-report:/usr/share/nginx/html
+    depends_on:
+      - playwright-tests
+

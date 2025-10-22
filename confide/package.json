@@ -1,0 +1,33 @@
+{
+  "name": "confide",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:production": "playwright test --project=production-chrome",
+    "test:staging": "playwright test --project=staging-chrome",
+    "test:sequential": "playwright test --workers=1",
+    "test:production-first": "playwright test --project=production-chrome && playwright test --project=staging-chrome",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "test:ci": "playwright test --config=playwright.config.ci.js",
+    "test:ci:production": "playwright test --config=playwright.config.ci.js --project=production-chrome",
+    "test:ci:staging": "playwright test --config=playwright.config.ci.js --project=staging-chrome",
+    "test:ci:all": "playwright test --config=playwright.config.ci.js --project=production-chrome && playwright test --config=playwright.config.ci.js --project=staging-chrome",
+    "test:install": "playwright install --with-deps",
+    "test:codegen": "playwright codegen",
+    "test:ui": "playwright test --ui",
+    "test:local-notify": "node scripts/local-slack-notify.js",
+    "test:production-notify": "npm run test:production && npm run test:local-notify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.7.0",
+    "typescript": "^5.0.0"
+  }
+}

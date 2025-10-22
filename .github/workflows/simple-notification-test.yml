@@ -1,0 +1,29 @@
+name: Simple Notification Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  notify:
+    name: Send Test Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: 'playwright-automation-reports'
+          text: |
+            🚀 *GitHub Actions Test*
+            
+            *Repository:* ${{ github.repository }}
+            *Branch:* ${{ github.ref_name }}
+            *Commit:* ${{ github.sha }}
+            *Author:* ${{ github.actor }}
+            *Trigger:* ${{ github.event_name }}
+            
+            *Time:* ${{ github.event.head_commit.timestamp }}
+            *Workflow:* ${{ github.workflow }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
