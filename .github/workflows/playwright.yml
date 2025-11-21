@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  schedule:
+    # Run daily at 7 AM Philippine Time (11 PM UTC)
+    - cron: '0 23 * * *'
 
 jobs:
   test-production:
@@ -29,9 +32,9 @@ jobs:
         run: |
           echo "=== Running Production Tests ==="
           echo "Available projects:"
-          npx playwright test --config=playwright.config.ci.simple.js --list
+          npx playwright test --config=playwright.config.ci.js --list
           echo "Running production tests..."
-          npx playwright test --config=playwright.config.ci.simple.js --project=production-chrome
+          npx playwright test --config=playwright.config.ci.js --project=production-chrome
           echo "=== Test execution completed ==="
           echo "Checking for results files:"
           find . -name "*.json" -type f | head -10
@@ -67,9 +70,9 @@ jobs:
         run: |
           echo "=== Running Staging Tests ==="
           echo "Available projects:"
-          npx playwright test --config=playwright.config.ci.simple.js --list
+          npx playwright test --config=playwright.config.ci.js --list
           echo "Running staging tests..."
-          npx playwright test --config=playwright.config.ci.simple.js --project=staging-chrome
+          npx playwright test --config=playwright.config.ci.js --project=staging-chrome
           echo "=== Test execution completed ==="
           echo "Checking for results files:"
           find . -name "*.json" -type f | head -10
