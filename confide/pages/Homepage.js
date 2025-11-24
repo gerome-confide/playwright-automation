@@ -11,13 +11,10 @@ export class HomePage {
 
    this.adminButton = page.locator('#admin-tab');
    this.logoutButton = page.locator("//p[text()='Logout'][1]");
+   this.burgerButton = page.locator('//button[@aria-label="Toggle sidebar"]');
 
   }
 
-  /**
-   * Clicks the logout button
-   * @returns {Promise<void>}
-   */
   async clickLogout() {
     try {
       await this.logoutButton.click();
@@ -26,6 +23,13 @@ export class HomePage {
     }
   } 
 
+  async clickBurgerButton() {
+    try {
+      await this.burgerButton.click();
+    } catch (error) {
+      throw new Error(`Cannot Click Burger Button ${error.message}`);
+    }
+  } 
 
 
 }

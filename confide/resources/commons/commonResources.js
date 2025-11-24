@@ -12,13 +12,25 @@ export class commonResources {
 
   /**
    * Waits for a specific URL to be loaded
-   * @param {string} url - The URL to wait for
+   * @param {string} url - The URL to wait for (can be a pattern with *)
+   * @param {number} timeout - Timeout in milliseconds (default: 30000)
    * @returns {Promise<void>}
    */
-  async waitForURLToBeLoaded(url) {
+  async waitForURLToBeLoaded(url, timeout = 30000) {
     try {
-      await this.page.waitForURL(url);
+      // Check if page is still open
+      if (this.page.isClosed()) {
+        throw new Error('Page has been closed');
+      }
+      
+      // Use pattern matching to handle URLs with trailing slashes or query parameters
+      const urlPattern = url.includes('*') ? url : `${url}*`;
+      await this.page.waitForURL(urlPattern, { timeout });
     } catch (error) {
+      // Check if page was closed during the wait
+      if (this.page.isClosed()) {
+        throw new Error(`Page was closed while waiting for URL: ${url}`);
+      }
       throw new Error(`Failed to wait for URL to load: ${url}. Error: ${error.message}`);
     }
   }

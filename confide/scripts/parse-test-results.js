@@ -121,17 +121,27 @@ function parseTestResults() {
     duration: productionStats.duration + stagingStats.duration
   };
   
+  // Helper function to safely escape special characters for Slack messages
+  function escapeSlackText(text) {
+    if (!text) return 'N/A';
+    // Escape special Slack markdown characters
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+  
   // Generate Slack message
   const status = overallStats.failed > 0 ? '🚨' : '✅';
   const overallStatus = overallStats.failed > 0 ? 'SOME TESTS FAILED' : 'ALL TESTS PASSED';
   
   const message = `${status} *Playwright Test Results*
 
-*Repository:* ${process.env.GITHUB_REPOSITORY || 'N/A'}
-*Branch:* ${process.env.GITHUB_REF_NAME || 'N/A'}
-*Commit:* ${process.env.GITHUB_SHA || 'N/A'}
-*Author:* ${process.env.GITHUB_ACTOR || 'N/A'}
-*Workflow:* ${process.env.GITHUB_WORKFLOW || 'N/A'}
+*Repository:* ${escapeSlackText(process.env.GITHUB_REPOSITORY)}
+*Branch:* ${escapeSlackText(process.env.GITHUB_REF_NAME)}
+*Commit:* ${escapeSlackText(process.env.GITHUB_SHA)}
+*Author:* ${escapeSlackText(process.env.GITHUB_ACTOR)}
+*Workflow:* ${escapeSlackText(process.env.GITHUB_WORKFLOW)}
 
 *Test Results:*
 • *Production:* ${productionStats.failed > 0 ? '❌ FAILED' : '✅ PASSED'} (${productionStats.passed}/${productionStats.total} passed, ${productionStats.duration}s)
@@ -153,6 +163,47 @@ function parseTestResults() {
   fs.writeFileSync('slack-message.txt', message);
   console.log('Generated detailed test report:');
   console.log(message);
+  
+  // Send to Slack if webhook URL is provided
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+  if (webhookUrl) {
+    const https = require('https');
+    const url = require('url');
+    
+    const payload = JSON.stringify({
+      channel: 'playwright-automation-reports',
+      text: message
+    });
+    
+    const parsedUrl = url.parse(webhookUrl);
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || 443,
+      path: parsedUrl.path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+    
+    const req = https.request(options, (res) => {
+      console.log(`Slack notification sent. Status: ${res.statusCode}`);
+      res.on('data', (d) => {
+        process.stdout.write(d);
+      });
+    });
+    
+    req.on('error', (error) => {
+      console.error('Error sending Slack notification:', error);
+      process.exit(1);
+    });
+    
+    req.write(payload);
+    req.end();
+  } else {
+    console.log('SLACK_WEBHOOK_URL not provided, skipping Slack notification');
+  }
 }
 
 // Run the parser

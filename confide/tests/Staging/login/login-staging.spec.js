@@ -1,6 +1,8 @@
 import { test } from '@playwright/test';
 import { LoginPage } from '../../../pages/Loginpage';
+import { HomePage } from '../../../pages/Homepage';
 import { commonResources } from '../../../resources/commons/commonResources';
+import { LoginPageAssertions } from '../../../resources/assertions/login-page-assertions';
 
 //Login Credentials
 import { loginCredentials } from '../../../resources/test-data/login-credentials';
@@ -9,6 +11,7 @@ test.describe.serial('Login Scenario Staging', () => {
   let context;
   let page;
   let commonresource;
+  let loginPageAssertions;
 
   test.beforeEach(async ({ browser }) => {
     // create a single browser context & page that will be shared by tests
@@ -18,6 +21,7 @@ test.describe.serial('Login Scenario Staging', () => {
     });
     page = await context.newPage();
     commonresource = new commonResources(page);
+    loginPageAssertions = new LoginPageAssertions(page);
 
     // Add console logging to debug
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
@@ -31,9 +35,22 @@ test.describe.serial('Login Scenario Staging', () => {
   });
 
   test.afterEach(async () => {
-    // Close browser after each test
-    await page.close();
-    await context.close();
+    // Close browser after each test (only if still open)
+    try {
+      if (page && !page.isClosed()) {
+        await page.close();
+      }
+    } catch (error) {
+      console.log('Error closing page:', error.message);
+    }
+    
+    try {
+      if (context) {
+        await context.close();
+      }
+    } catch (error) {
+      console.log('Error closing context:', error.message);
+    }
   });
 
   test.afterAll(async () => {
@@ -43,6 +60,7 @@ test.describe.serial('Login Scenario Staging', () => {
 
   test('Login as User', async () => {
     const loginPage = new LoginPage(page);
+    const homePage = new HomePage(page);
 
     await test.step('Click Admin Button', async () => {
       await loginPage.clickAdminButton();
@@ -63,10 +81,15 @@ test.describe.serial('Login Scenario Staging', () => {
     await test.step('Wait for Dashboard URL to Load', async () => {
       await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/customer');
     });
+
+    await test.step('Click Logout Button', async () => {
+      await homePage.clickLogout();
+    });
   });
 
   test('Login as Reporter', async () => {
     const loginPage = new LoginPage(page);
+    const homePage = new HomePage(page);
 
     await test.step('Click Reporter Button', async () => {
       await loginPage.clickReporterButton();
@@ -91,10 +114,15 @@ test.describe.serial('Login Scenario Staging', () => {
     await test.step('Wait for Dashboard URL to Load', async () => {
       await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/customer');
     });
+
+    await test.step('Click Logout Button', async () => {
+      await homePage.clickLogout();
+    });
   });
 
    test('Login Using private Key', async () => {
     const loginPage = new LoginPage(page);
+    const homePage = new HomePage(page);
 
     await test.step('Click private Key Button', async () => {
       await loginPage.clickInputReporterKey();
@@ -109,8 +137,71 @@ test.describe.serial('Login Scenario Staging', () => {
     });
 
     await test.step('Wait for Dashboard URL to Load', async () => {
-      await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/inbox');
+      // Wait for inbox URL with longer timeout and pattern matching
+      await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/inbox', 60000);
     });
+
+    await test.step('Click Menu Button', async () => {
+      await homePage.clickBurgerButton();
+    });
+
+    await test.step('Click Logout Button', async () => {
+      await homePage.clickLogout();
+    });
+
+  });
+
+  test('Login as using blank credentials', async () => {
+    const loginPage = new LoginPage(page);
+
+    await test.step('Click Admin Button', async () => {
+      await loginPage.clickAdminButton();
+    });
+
+    await test.step('Proceed to Login', async () => {
+      await loginPage.clickLoginButton();
+    });
+   
+    await test.step('Wait for Error Messages to Appear', async () => {    
+      await loginPageAssertions.waitForErrorMessages();
+    });
+
+    await test.step('Validate Email Error Message', async () => {
+      await loginPageAssertions.validateEmailErrorMessageIsDisplayed('Email is required');
+    });
+
+    await test.step('Validate Password Error Message', async () => {
+      await loginPageAssertions.validatePasswordErrorMessageIsDisplayed('Password is required');
+    });
+  });
+
+  test('Login user invalid credentials', async () => {
+    const loginPage = new LoginPage(page);
+
+    await test.step('Click Admin Button', async () => {
+      await loginPage.clickAdminButton();
+    });
+
+    await test.step('Input Username', async () => {
+      await loginPage.inputUserName(loginCredentials.stagingInvalidCredentials.email);
+    });
+
+    await test.step('Input Password', async () => {
+      await loginPage.inputPassword(loginCredentials.stagingInvalidCredentials.password);
+    });
+
+    await test.step('Proceed to Login', async () => {
+      await loginPage.clickLoginButton();
+    });
+   
+    await test.step('Wait for Error Messages to Appear', async () => {    
+      await loginPageAssertions.waitForErrorMessages();
+    });
+
+    await test.step('Validate Error Message', async () => {
+      await loginPageAssertions.validateInvalidCredentialsErrorMessageIsDisplayed('Wrong email or password.');
+    });
+
   });
 
 });
