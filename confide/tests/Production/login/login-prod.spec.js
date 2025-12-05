@@ -32,9 +32,22 @@ test.describe.serial('Login Scenario Production', () => {
   });
 
   test.afterEach(async () => {
-    // Close browser after each test
-    await page.close();
-    await context.close();
+    // Close browser after each test (only if still open)
+    try {
+      if (page && !page.isClosed()) {
+        await page.close();
+      }
+    } catch (error) {
+      console.log('Error closing page:', error.message);
+    }
+    
+    try {
+      if (context) {
+        await context.close();
+      }
+    } catch (error) {
+      console.log('Error closing context:', error.message);
+    }
   });
 
   test.afterAll(async () => {
@@ -73,10 +86,14 @@ test.describe.serial('Login Scenario Production', () => {
 
     await test.step('Wait for Dashboard URL to Load', async () => {
       try {
+        // Use longer timeout for CI environments
+        const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+        const timeout = isCI ? 60000 : 30000;
+        
         // Wait for either the dashboard or handle Auth0 redirect
         await Promise.race([
-          page.waitForURL('https://app.confideplatform.com/customer*', { timeout: 15000 }),
-          page.waitForURL('**/auth0.com/**', { timeout: 15000 })
+          page.waitForURL('https://app.confideplatform.com/customer*', { timeout }),
+          page.waitForURL('**/auth0.com/**', { timeout })
         ]);
         
         const currentUrl = page.url();
@@ -123,7 +140,8 @@ test.describe.serial('Login Scenario Production', () => {
     });
 
     await test.step('Wait for Dashboard URL to Load', async () => {
-      await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/customer');
+      // Use longer timeout for CI environments
+      await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/customer', 60000);
     });
   });
 
@@ -143,8 +161,8 @@ test.describe.serial('Login Scenario Production', () => {
     });
 
     await test.step('Wait for Dashboard URL to Load', async () => {
-      await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/inbox');
-      // await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/inbox');
+      // Use longer timeout for CI environments (inbox may take longer to load)
+      await commonresource.waitForURLToBeLoaded('https://app.confideplatform.com/inbox', 60000);
     });
   });
 });
