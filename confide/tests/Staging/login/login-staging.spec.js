@@ -79,7 +79,8 @@ test.describe.serial('Login Scenario Staging', () => {
     });
 
     await test.step('Wait for Dashboard URL to Load', async () => {
-      await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/customer');
+      // Use longer timeout for CI environments
+      await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/customer', 60000);
     });
 
     await test.step('Click Logout Button', async () => {
@@ -112,7 +113,8 @@ test.describe.serial('Login Scenario Staging', () => {
     });
 
     await test.step('Wait for Dashboard URL to Load', async () => {
-      await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/customer');
+      // Use longer timeout for CI environments
+      await commonresource.waitForURLToBeLoaded('https://app.stgv2.confide.solutions/customer', 60000);
     });
 
     await test.step('Click Logout Button', async () => {

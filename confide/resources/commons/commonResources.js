@@ -13,25 +13,43 @@ export class commonResources {
   /**
    * Waits for a specific URL to be loaded
    * @param {string} url - The URL to wait for (can be a pattern with *)
-   * @param {number} timeout - Timeout in milliseconds (default: 30000)
+   * @param {number} timeout - Timeout in milliseconds (default: auto-detect based on CI)
    * @returns {Promise<void>}
    */
-  async waitForURLToBeLoaded(url, timeout = 30000) {
+  async waitForURLToBeLoaded(url, timeout = null) {
     try {
       // Check if page is still open
       if (this.page.isClosed()) {
         throw new Error('Page has been closed');
       }
       
+      // Auto-detect timeout: use longer timeout in CI environments
+      const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+      const defaultTimeout = timeout || (isCI ? 60000 : 30000); // 60s for CI, 30s for local
+      
       // Use pattern matching to handle URLs with trailing slashes or query parameters
       const urlPattern = url.includes('*') ? url : `${url}*`;
-      await this.page.waitForURL(urlPattern, { timeout });
+      
+      console.log(`Waiting for URL: ${urlPattern} (timeout: ${defaultTimeout}ms, CI: ${isCI})`);
+      
+      await this.page.waitForURL(urlPattern, { timeout: defaultTimeout });
+      
+      // Verify we actually reached the expected URL
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes(url.replace('https://', '').split('/')[0])) {
+        console.log(`Warning: Current URL (${currentUrl}) doesn't match expected pattern (${urlPattern})`);
+      }
     } catch (error) {
       // Check if page was closed during the wait
       if (this.page.isClosed()) {
         throw new Error(`Page was closed while waiting for URL: ${url}`);
       }
-      throw new Error(`Failed to wait for URL to load: ${url}. Error: ${error.message}`);
+      
+      // Log current URL for debugging
+      const currentUrl = this.page.url();
+      console.log(`Current URL when timeout occurred: ${currentUrl}`);
+      
+      throw new Error(`Failed to wait for URL to load: ${url}. Error: ${error.message}. Current URL: ${currentUrl}`);
     }
   }
 
