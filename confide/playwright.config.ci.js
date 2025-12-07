@@ -15,10 +15,14 @@ export default defineConfig({
   
   /* Reporter for CI/CD */
   reporter: process.env.CI ? [
+    ['list'], // Shows detailed test execution in console with pass/fail status
     ['html', { outputFolder: 'playwright-report' }],
     ['junit', { outputFile: 'test-results/results.xml' }],
     ['json', { outputFile: 'test-results/results.json' }]
-  ] : 'html',
+  ] : [
+    ['list'], // Shows detailed test execution in console with pass/fail status
+    ['html']  // Generates HTML report for detailed viewing
+  ],
   
   /* Global test settings */
   use: {

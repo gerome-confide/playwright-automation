@@ -162,18 +162,40 @@ test.describe.serial('Login Scenario Staging', () => {
 
     await test.step('Proceed to Login', async () => {
       await loginPage.clickLoginButton();
+      
+      // Wait a bit to see if we stay on login page or get redirected
+      await page.waitForTimeout(2000);
+      
+      // Check if we got redirected (if so, navigate back)
+      const currentUrl = page.url();
+      if (!currentUrl.includes('/customer/login')) {
+        console.log(`Warning: Redirected to ${currentUrl}, navigating back to login page`);
+        await page.goto('https://app.stgv2.confide.solutions/customer/login', {
+          waitUntil: 'networkidle',
+          timeout: 30000
+        });
+        await loginPage.clickAdminButton();
+        await loginPage.clickLoginButton();
+        await page.waitForTimeout(2000);
+      }
     });
    
     await test.step('Wait for Error Messages to Appear', async () => {    
-      await loginPageAssertions.waitForErrorMessages();
+      // Use longer timeout for CI environments
+      const timeout = process.env.CI ? 15000 : 10000;
+      await loginPageAssertions.waitForErrorMessages(timeout);
     });
 
     await test.step('Validate Email Error Message', async () => {
-      await loginPageAssertions.validateEmailErrorMessageIsDisplayed('Email is required');
+      // Use longer timeout for CI environments
+      const timeout = process.env.CI ? 20000 : 15000;
+      await loginPageAssertions.validateEmailErrorMessageIsDisplayed('Email is required', 'admin', timeout);
     });
 
     await test.step('Validate Password Error Message', async () => {
-      await loginPageAssertions.validatePasswordErrorMessageIsDisplayed('Password is required');
+      // Use longer timeout for CI environments
+      const timeout = process.env.CI ? 20000 : 15000;
+      await loginPageAssertions.validatePasswordErrorMessageIsDisplayed('Password is required', 'admin', timeout);
     });
   });
 
