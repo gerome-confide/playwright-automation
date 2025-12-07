@@ -55,6 +55,14 @@ test.describe.serial('Create Report Scenario Staging', () => {
       await baseLogin.performAdminLogin('staging');
     });
 
+    await test.step('Select Workflow from Dropdown', async () => {
+      await homePage.selectWorkFlowFromDropdown('Health and safety');
+    });
+
+    await test.step('Click Reports Menu', async () => {
+      await homePage.navigateToCreateReportPage();
+    });
+
     // Add your create report test steps here
     await test.step('Create Report', async () => {
       // TODO: Add your create report logic here
@@ -65,16 +73,24 @@ test.describe.serial('Create Report Scenario Staging', () => {
     });
   });
   
-  test('Create Health Anti-Money Laundering Report', async () => {
+  test('Create Anti-Money Laundering Report', async () => {
     const homePage = new HomePage(page);
 
     await test.step('Login as Admin', async () => {
       await baseLogin.performAdminLogin('staging');
     });
 
-    // Add your create health and safety report test steps here
-    await test.step('Create Health and Safety Report', async () => {
-      // TODO: Add your create health and safety report logic here
+    await test.step('Select Workflow from Dropdown', async () => {
+      await homePage.selectWorkFlowFromDropdown('Anti-money laundering');
+    });
+
+    
+    await test.step('Click Reports Menu', async () => {
+      await homePage.navigateToCreateReportPage();
+    });
+    // Add your create report test steps here
+    await test.step('Create Report', async () => {
+      // TODO: Add your create report logic here
     });
 
     await test.step('Click Logout Button', async () => {
