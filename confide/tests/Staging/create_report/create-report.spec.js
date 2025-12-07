@@ -98,4 +98,76 @@ test.describe.serial('Create Report Scenario Staging', () => {
     });
   });
 
+  test('Create Conflicts of Interest Report', async () => {
+    const homePage = new HomePage(page);
+
+    await test.step('Login as Admin', async () => {
+      await baseLogin.performAdminLogin('staging');
+    });
+
+    await test.step('Select Workflow from Dropdown', async () => {
+      await homePage.selectWorkFlowFromDropdown('Conflicts of interest');
+    });
+    
+    await test.step('Click Reports Menu', async () => {
+      await homePage.navigateToCreateReportPage();
+    });
+    // Add your create report test steps here
+    await test.step('Create Report', async () => {
+      // TODO: Add your create report logic here
+    });
+
+    await test.step('Click Logout Button', async () => {
+      await homePage.clickLogout();
+    });
+  });
+
+  test('Create AI governance Report', async () => {
+    const homePage = new HomePage(page);
+
+    await test.step('Login as Admin', async () => {
+      await baseLogin.performAdminLogin('staging');
+    });
+
+    await test.step('Select Workflow from Dropdown', async () => {
+      await homePage.selectWorkFlowFromDropdown('AI governance');
+    });
+
+    await test.step('Click Reports Menu', async () => {
+      await homePage.navigateToCreateReportPage();
+    });
+    // Add your create report test steps here
+    await test.step('Create Report', async () => {
+      // TODO: Add your create report logic here
+    });
+
+    await test.step('Click Logout Button', async () => {
+      await homePage.clickLogout();
+    });
+  });
+
+  test('Create Gifts and entertainment Report', async () => {
+    const homePage = new HomePage(page);
+
+    await test.step('Login as Admin', async () => {
+      await baseLogin.performAdminLogin('staging');
+    });
+
+    await test.step('Select Workflow from Dropdown', async () => {
+      await homePage.selectWorkFlowFromDropdown('Gifts and entertainment');
+    });
+
+    await test.step('Click Reports Menu', async () => {
+      await homePage.navigateToCreateReportPage();
+    });
+    // Add your create report test steps here
+    await test.step('Create Report', async () => {
+      // TODO: Add your create report logic here
+    });
+
+    await test.step('Click Logout Button', async () => {
+      await homePage.clickLogout();
+    });
+  });
+
 });

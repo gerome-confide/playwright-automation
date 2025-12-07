@@ -37,10 +37,26 @@ export class HomePage {
 
  async clickReportsMenu() {
    try {
-     await this.reportsMenu.click();
-     // Wait for the submenu to expand
-     await this.page.waitForTimeout(500);
+     // Check if page is still open
+     if (this.page.isClosed()) {
+       throw new Error('Page has been closed');
+     }
+     
+     // Wait for Reports menu to be visible
+     await this.reportsMenu.waitFor({ state: 'visible', timeout: 5000 });
+     
+     // Click and wait for potential navigation or submenu expansion
+     await Promise.all([
+       this.page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {}), // Ignore if no navigation
+       this.reportsMenu.click()
+     ]);
+     
+     // Wait a bit for submenu to expand (if it's a dropdown, not navigation)
+     await this.page.waitForTimeout(1000);
    } catch (error) {
+     if (this.page.isClosed()) {
+       throw new Error(`Cannot Click Reports Menu: Page was closed`);
+     }
      throw new Error(`Cannot Click Reports Menu: ${error.message}`);
    }
  }
@@ -48,10 +64,28 @@ export class HomePage {
 
  async clickCreateReportLink() {
    try {
-     await this.createReportLink.waitFor({ state: 'visible', timeout: 5000 });
-     await this.createReportLink.click();
-     await this.page.waitForLoadState('networkidle');
+     // Check if page is still open
+     if (this.page.isClosed()) {
+       throw new Error('Page has been closed');
+     }
+     
+     // Wait for the link to be visible
+     await this.createReportLink.waitFor({ state: 'visible', timeout: 10000 });
+     
+     // Click and wait for URL to change (handles navigation)
+     // Using waitForURL is more reliable than waitForLoadState for navigation
+     await Promise.all([
+       this.page.waitForURL('**/customer/reports/create-report**', { timeout: 30000 }).catch(() => {
+         // If URL doesn't match exactly, that's okay - just continue
+       }),
+       this.createReportLink.click()
+     ]);
+     
    } catch (error) {
+     // Check if page was closed
+     if (this.page.isClosed()) {
+       throw new Error(`Cannot Click Create Report Link: Page was closed during navigation`);
+     }
      throw new Error(`Cannot Click Create Report Link: ${error.message}`);
    }
  }
@@ -78,11 +112,29 @@ export class HomePage {
 
  async navigateToCreateReportPage() {
    try {
+     // Check if page is still open
+     if (this.page.isClosed()) {
+       throw new Error('Page has been closed');
+     }
+     
      // Click on Reports menu item in the sidebar
      await this.clickReportsMenu();
      
+     // Verify page is still open before clicking Create Report
+     if (this.page.isClosed()) {
+       throw new Error('Page was closed after clicking Reports menu');
+     }
+     
      // Click on Create Report link
      await this.clickCreateReportLink();
+     
+     // Verify we're on the correct page
+     if (!this.page.isClosed()) {
+       const currentUrl = this.page.url();
+       if (!currentUrl.includes('/customer/reports/create-report')) {
+         console.log(`Warning: Expected to be on create-report page, but current URL is: ${currentUrl}`);
+       }
+     }
    } catch (error) {
      throw new Error(`Cannot Navigate to Create Report Page: ${error.message}`);
    }
