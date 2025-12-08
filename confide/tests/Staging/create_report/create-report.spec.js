@@ -22,6 +22,25 @@ test.describe.serial('Create Report Scenario Staging', () => {
     // Add console logging to debug
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
     page.on('pageerror', error => console.log('PAGE ERROR:', error.message));
+    
+    // Maximize the browser window - get full screen dimensions
+    const screenSize = await page.evaluate(() => {
+      return {
+        width: window.screen.availWidth || 1920,
+        height: window.screen.availHeight || 1080
+      };
+    });
+    
+    // Set viewport to maximum screen size (explicitly, not null)
+    await page.setViewportSize({ 
+      width: screenSize.width, 
+      height: screenSize.height 
+    });
+    
+    // Zoom out to 80% after maximizing
+    await page.evaluate(() => {
+      document.body.style.zoom = '0.8';
+    });
   });
 
   test.afterEach(async () => {
@@ -49,6 +68,7 @@ test.describe.serial('Create Report Scenario Staging', () => {
   });
 
   test('Create Health and Safety Report', async () => {
+    test.setTimeout(120000); // Set test timeout to 2 minutes
     const homePage = new HomePage(page);
 
     await test.step('Login as Admin', async () => {
@@ -64,8 +84,33 @@ test.describe.serial('Create Report Scenario Staging', () => {
     });
 
     // Add your create report test steps here
-    await test.step('Create Report', async () => {
-      // TODO: Add your create report logic here
+    await test.step('Select Report Type', async () => {
+      await homePage.selectReportType('Hazard');
+    });
+
+    await test.step('Select Report Country', async () => {
+      await homePage.selectReportCountry('Australia');
+    });
+
+    await test.step('Input Location of Incident', async () => {
+      await homePage.inputLocationOfIncident('Manila, Philippines');
+    });
+
+    await test.step('Input Description', async () => {
+      await homePage.inputDescription('This is an automated test, please ignore and DO NOT DELETE PLEASEEE.');
+    });
+
+    await test.step('Select Some One Injured', async () => {
+      await homePage.selectSomeOneInjured('No');
+    });
+
+
+    await test.step('Click Submit Report Button', async () => {
+      await homePage.clickSubmitReportButton();
+    });
+
+    await test.step('Click Success Modal Done Button', async () => {
+      await homePage.clickSuccessModalDoneButton();
     });
 
     await test.step('Click Logout Button', async () => {
