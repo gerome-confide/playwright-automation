@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { HomePage } from '../../../pages/Homepage';
 import { HealthAndSafetyCreateReportPage } from '../../../pages/workflowCreateReportPages/HealthAndSafetyCreateReportpage';
+import { AntiMoneyLaunderingCreateReportPage } from '../../../pages/workflowCreateReportPages/AntiMoneyLaunderingCreateReportpage';
 import { commonResources } from '../../../resources/commons/commonResources';
 import { BaseLogin } from '../../../resources/utils/auth/baseLogin';
 
@@ -122,6 +123,7 @@ test.describe.serial('Create Report Scenario Staging', () => {
   
   test('Create Anti-Money Laundering Report', async () => {
     const homePage = new HomePage(page);
+    const antiMoneyLaunderingPage = new AntiMoneyLaunderingCreateReportPage(page);
 
     await test.step('Login as Admin', async () => {
       await baseLogin.performAdminLogin('staging');
@@ -143,15 +145,31 @@ test.describe.serial('Create Report Scenario Staging', () => {
     });
 
     await test.step('Select Report Type', async () => {
-      await homePage.selectReportType('Fraudulent activity');
+      await antiMoneyLaunderingPage.selectReportType('Fraudulent activity');
     });
 
     await test.step('Select Report Country', async () => {
-      await homePage.selectReportCountry('Australia');
+      await antiMoneyLaunderingPage.selectReportCountry('Australia');
     });
 
     await test.step('Input Description', async () => {
-      await homePage.inputDescription('This is an automated test for creating Anti-Money Laundering Report, please ignore and DO NOT DELETE PLEASEEE.');
+      await antiMoneyLaunderingPage.inputDescription('This is an automated test for creating Anti-Money Laundering Report, please ignore and DO NOT DELETE PLEASEEE.');
+    });
+
+    await test.step('Input Customer Account Number', async () => {
+      await antiMoneyLaunderingPage.inputCustomerAccountNumber('1234567890');
+    });
+
+    await test.step('Input Red Flags', async () => {
+      await antiMoneyLaunderingPage.inputRedFlags('Red Flag 1, Red Flag 2');
+    });
+
+    await test.step('Click Submit Report Button', async () => {
+      await homePage.clickSubmitReportButton();
+    });
+
+    await test.step('Click Success Modal Done Button', async () => {
+      await homePage.clickSuccessModalDoneButton();
     });
 
     await test.step('Click Logout Button', async () => {
