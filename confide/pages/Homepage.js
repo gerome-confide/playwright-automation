@@ -239,11 +239,7 @@ async selectDateOfIncident() {
 }
 
 
-/**
- * Selects an option from the "Was someone injured?" dropdown
- * @param {string} option - The option to select (e.g., "No", "Yes")
- * @returns {Promise<void>}
- */
+
 async selectSomeOneInjured(option = 'No') {
   try {
     // Click the button to open the dropdown
