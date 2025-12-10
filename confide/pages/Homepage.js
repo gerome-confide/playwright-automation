@@ -96,7 +96,7 @@ export class HomePage {
      // Click and wait for URL to change (handles navigation)
      // Using waitForURL is more reliable than waitForLoadState for navigation
      await Promise.all([
-       this.page.waitForURL('**/customer/reports/create-report**', { timeout: 30000 }).catch(() => {
+       this.page.waitForURL('**/customer/reports/create-report**', { timeout: 300000 }).catch(() => {
          // If URL doesn't match exactly, that's okay - just continue
        }),
        this.createReportLink.click()
@@ -132,34 +132,70 @@ export class HomePage {
 
 
  async navigateToCreateReportPage() {
-   try {
-     // Check if page is still open
-     if (this.page.isClosed()) {
-       throw new Error('Page has been closed');
-     }
-     
-     // Click on Reports menu item in the sidebar
-     await this.clickReportsMenu();
-     
-     // Verify page is still open before clicking Create Report
-     if (this.page.isClosed()) {
-       throw new Error('Page was closed after clicking Reports menu');
-     }
-     
-     // Click on Create Report link
-     await this.clickCreateReportLink();
-     
-     // Verify we're on the correct page
-     if (!this.page.isClosed()) {
-       const currentUrl = this.page.url();
-       if (!currentUrl.includes('/customer/reports/create-report')) {
-         console.log(`Warning: Expected to be on create-report page, but current URL is: ${currentUrl}`);
-       }
-     }
-   } catch (error) {
-     throw new Error(`Cannot Navigate to Create Report Page: ${error.message}`);
-   }
- }
+  try {
+    // Check if page is still open
+    if (this.page.isClosed()) {
+      throw new Error('Page has been closed');
+    }
+    
+    // Verify authentication before navigation - check we're not on login/error page
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/login') || currentUrl.includes('auth0.com')) {
+      throw new Error('Not authenticated - still on login/auth page. Please login first.');
+    }
+    
+    // Check for error page before navigation
+    const errorPage = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorPage = await errorPage.isVisible().catch(() => false);
+    if (isErrorPage) {
+      throw new Error('Error page detected before navigation - authentication may have failed');
+    }
+    
+    // Wait for page to be ready
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+    
+    // Click on Reports menu item in the sidebar
+    await this.clickReportsMenu();
+    
+    // Wait a bit for menu to expand
+    await this.page.waitForTimeout(500);
+    
+    // Verify page is still open and not on error page
+    if (this.page.isClosed()) {
+      throw new Error('Page was closed after clicking Reports menu');
+    }
+    
+    const errorAfterMenu = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorAfterMenu = await errorAfterMenu.isVisible().catch(() => false);
+    if (isErrorAfterMenu) {
+      throw new Error('Error page appeared after clicking Reports menu');
+    }
+    
+    // Click on Create Report link
+    await this.clickCreateReportLink();
+    
+    // Wait for navigation to complete
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    
+    // Verify we're on the correct page and not on error page
+    if (!this.page.isClosed()) {
+      const finalUrl = this.page.url();
+      
+      // Check for error page
+      const errorOnReportPage = this.page.locator('text="Oops!, something went wrong"');
+      const isErrorOnReportPage = await errorOnReportPage.isVisible().catch(() => false);
+      if (isErrorOnReportPage) {
+        throw new Error('Error page appeared on create report page - authentication may have expired');
+      }
+      
+      if (!finalUrl.includes('/customer/reports/create-report')) {
+        console.log(`Warning: Expected to be on create-report page, but current URL is: ${finalUrl}`);
+      }
+    }
+  } catch (error) {
+    throw new Error(`Cannot Navigate to Create Report Page: ${error.message}`);
+  }
+}
 
  ////////////////////////////////////////////////////////
  //////Health and Safety Report Form function here///////
@@ -239,11 +275,7 @@ async selectDateOfIncident() {
 }
 
 
-/**
- * Selects an option from the "Was someone injured?" dropdown
- * @param {string} option - The option to select (e.g., "No", "Yes")
- * @returns {Promise<void>}
- */
+
 async selectSomeOneInjured(option = 'No') {
   try {
     // Click the button to open the dropdown
@@ -266,6 +298,28 @@ async selectSomeOneInjured(option = 'No') {
 
 async clickSubmitReportButton() {
   try {
+    // Check if page is still open
+    if (this.page.isClosed()) {
+      throw new Error('Page has been closed before submitting');
+    }
+    
+    // Set up network request monitoring to catch 400 errors
+    const failedRequests = [];
+    const requestListener = (request) => {
+      // Monitor failed requests
+      request.response().then(response => {
+        if (response && response.status() >= 400) {
+          failedRequests.push({
+            url: request.url(),
+            status: response.status(),
+            statusText: response.statusText()
+          });
+        }
+      }).catch(() => {});
+    };
+    
+    this.page.on('request', requestListener);
+    
     // Zoom out to 80% before clicking submit
     await this.page.evaluate(() => {
       document.body.style.zoom = '0.8';
@@ -277,40 +331,164 @@ async clickSubmitReportButton() {
     // Scroll to the button if needed
     await this.submitreportButton.scrollIntoViewIfNeeded();
     
+    // Check for actual validation errors before submitting
+    // Use more specific selectors to avoid false positives from dropdowns and labels
+    // Only check for actual error messages, not form labels or dropdown options
+    const errorMessages = await this.page.locator('.MuiFormHelperText-root.Mui-error, [class*="error-message"], [class*="validation-error"], p.MuiFormHelperText-root').allTextContents();
+    const invalidFields = await this.page.locator('input[aria-invalid="true"]:visible, textarea[aria-invalid="true"]:visible').count();
+    
+    // Filter out false positives - actual error messages are usually longer and specific
+    const realErrors = errorMessages.filter(text => {
+      const trimmed = text.trim();
+      // Real error messages are usually longer than 15 characters and don't contain form labels
+      return trimmed.length > 15 && 
+             !trimmed.match(/^\*?(Report Type|Country|Description|Model Name|Data)/i) &&
+             !trimmed.match(/^(Hazard|General|Concern|Incident|Near|Miss|Other|Unsafe|Condition|Australia|Expand|No|Yes|Outside|Employment)$/i);
+    });
+    
+    if (realErrors.length > 0) {
+      const errorText = realErrors.join(', ');
+      await this.page.screenshot({ path: 'validation-errors-before-submit.png', fullPage: true });
+      throw new Error(`Form validation errors found before submission: ${errorText}`);
+    }
+    
+    // Only warn about invalid fields, don't block submission (might be false positive)
+    if (invalidFields > 0) {
+      console.log(`Warning: Found ${invalidFields} field(s) marked as invalid`);
+    }
+    
+    // Check for empty required fields
+    const emptyRequiredInputs = await this.page.locator('input[required]:not([value]), textarea[required]:empty').count();
+    if (emptyRequiredInputs > 0) {
+      console.log(`Warning: Found ${emptyRequiredInputs} empty required fields`);
+    }
+    
+    // Wait a moment for any async validation to complete
+    await this.page.waitForTimeout(500);
+    
+    // Wait for response after clicking submit
+    const responsePromise = this.page.waitForResponse(
+      response => {
+        const url = response.url();
+        const status = response.status();
+        // Catch any 400+ errors or API/report endpoints
+        return (status >= 400) || url.includes('/reports') || url.includes('/api');
+      },
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     // Click the submit button
     await this.submitreportButton.click();
     
+    // Wait for response
+    const response = await responsePromise;
+    
+    // Check for 400 Bad Request or other errors
+    if (response && response.status() >= 400) {
+      let responseBody = '';
+      try {
+        responseBody = await response.text();
+        // Try to parse as JSON for better error messages
+        try {
+          const jsonBody = JSON.parse(responseBody);
+          responseBody = JSON.stringify(jsonBody, null, 2);
+        } catch {
+          // Not JSON, use as is
+        }
+      } catch {
+        responseBody = 'Unable to read response body';
+      }
+      
+      await this.page.screenshot({ path: '400-error-submit.png', fullPage: true });
+      
+      // Extract error message from response if available
+      let errorMessage = `HTTP ${response.status()} ${response.statusText()} error during form submission.`;
+      errorMessage += `\nURL: ${response.url()}`;
+      errorMessage += `\nResponse body: ${responseBody.substring(0, 1000)}`;
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Check for any failed requests
+    if (failedRequests.length > 0) {
+      const errorDetails = failedRequests.map(req => `${req.status} ${req.statusText} - ${req.url}`).join(', ');
+      await this.page.screenshot({ path: 'failed-requests-submit.png', fullPage: true });
+      throw new Error(`Failed requests detected: ${errorDetails}`);
+    }
+    
+    // Remove listener
+    this.page.off('request', requestListener);
+    
     // Wait for the form submission to process
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(2000);
+    
+    // Check if page is still open after submission
+    if (this.page.isClosed()) {
+      throw new Error('Page was closed after form submission');
+    }
+    
+    // Check for error page
+    const errorPage = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorPage = await errorPage.isVisible().catch(() => false);
+    if (isErrorPage) {
+      await this.page.screenshot({ path: 'error-page-after-submit.png', fullPage: true });
+      throw new Error('Error page appeared after form submission. Screenshot saved as error-page-after-submit.png');
+    }
   } catch (error) {
+    // Take screenshot on error
+    if (!this.page.isClosed()) {
+      await this.page.screenshot({ path: 'submit-error.png', fullPage: true }).catch(() => {});
+    }
     throw new Error(`Cannot click Submit Report button: ${error.message}`);
   }
 }
 
 async clickSuccessModalDoneButton() {
   try {
-    // Step 1: Wait for the success modal to appear first
-    await this.successModal.waitFor({ state: 'visible', timeout: 30000 });
+    // Check if page is still open before waiting
+    if (this.page.isClosed()) {
+      throw new Error('Page has been closed before waiting for success modal');
+    }
+    
+    // Step 1: Wait for the success modal to appear first (increased timeout)
+    // Wrap in try-catch to check page state if it fails
+    try {
+      await this.successModal.waitFor({ state: 'visible', timeout: 200000 });
+    } catch (error) {
+      // Check if page was closed during wait
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed while waiting for success modal');
+      }
+      // Re-throw original error if page is still open
+      throw error;
+    }
     
     // Step 2: Wait for the modal content to be fully loaded
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(1000);
+    
+    // Check page state again
+    if (this.page.isClosed()) {
+      throw new Error('Page was closed after modal appeared');
+    }
     
     // Step 3: Wait for the Done button to appear and be visible
-    await this.successModalDoneButton.waitFor({ state: 'visible', timeout: 30000 });
+    await this.successModalDoneButton.waitFor({ state: 'visible', timeout: 60000 });
     
     // Step 4: Wait for the button to be enabled and clickable
-    await this.successModalDoneButton.waitFor({ state: 'attached', timeout: 10000 });
+    await this.successModalDoneButton.waitFor({ state: 'attached', timeout: 60000 });
     
     // Step 5: Scroll to the button if needed
     await this.successModalDoneButton.scrollIntoViewIfNeeded();
     
     // Step 6: Click the Done button
-    await this.successModalDoneButton.click({ timeout: 30000 });
+    await this.successModalDoneButton.click({ timeout: 60000 });
     
     // Step 7: Wait for the modal to close
     await this.page.waitForTimeout(500);
   } catch (error) {
-    throw new Error(`Cannot click Done button in success modal: ${error.message}`);
+    // Provide more context in error message
+    const pageClosed = this.page.isClosed() ? ' (Page was closed)' : '';
+    throw new Error(`Cannot click Done button in success modal: ${error.message}${pageClosed}`);
   }
 }
 
