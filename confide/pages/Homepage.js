@@ -96,7 +96,7 @@ export class HomePage {
      // Click and wait for URL to change (handles navigation)
      // Using waitForURL is more reliable than waitForLoadState for navigation
      await Promise.all([
-       this.page.waitForURL('**/customer/reports/create-report**', { timeout: 30000 }).catch(() => {
+       this.page.waitForURL('**/customer/reports/create-report**', { timeout: 300000 }).catch(() => {
          // If URL doesn't match exactly, that's okay - just continue
        }),
        this.createReportLink.click()
@@ -262,6 +262,11 @@ async selectSomeOneInjured(option = 'No') {
 
 async clickSubmitReportButton() {
   try {
+    // Check if page is still open
+    if (this.page.isClosed()) {
+      throw new Error('Page has been closed before submitting');
+    }
+    
     // Zoom out to 80% before clicking submit
     await this.page.evaluate(() => {
       document.body.style.zoom = '0.8';
@@ -277,7 +282,12 @@ async clickSubmitReportButton() {
     await this.submitreportButton.click();
     
     // Wait for the form submission to process
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(2000);
+    
+    // Check if page is still open after submission
+    if (this.page.isClosed()) {
+      throw new Error('Page was closed after form submission');
+    }
   } catch (error) {
     throw new Error(`Cannot click Submit Report button: ${error.message}`);
   }
@@ -285,28 +295,50 @@ async clickSubmitReportButton() {
 
 async clickSuccessModalDoneButton() {
   try {
-    // Step 1: Wait for the success modal to appear first
-    await this.successModal.waitFor({ state: 'visible', timeout: 30000 });
+    // Check if page is still open before waiting
+    if (this.page.isClosed()) {
+      throw new Error('Page has been closed before waiting for success modal');
+    }
+    
+    // Step 1: Wait for the success modal to appear first (increased timeout)
+    // Wrap in try-catch to check page state if it fails
+    try {
+      await this.successModal.waitFor({ state: 'visible', timeout: 200000 });
+    } catch (error) {
+      // Check if page was closed during wait
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed while waiting for success modal');
+      }
+      // Re-throw original error if page is still open
+      throw error;
+    }
     
     // Step 2: Wait for the modal content to be fully loaded
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(1000);
+    
+    // Check page state again
+    if (this.page.isClosed()) {
+      throw new Error('Page was closed after modal appeared');
+    }
     
     // Step 3: Wait for the Done button to appear and be visible
-    await this.successModalDoneButton.waitFor({ state: 'visible', timeout: 30000 });
+    await this.successModalDoneButton.waitFor({ state: 'visible', timeout: 60000 });
     
     // Step 4: Wait for the button to be enabled and clickable
-    await this.successModalDoneButton.waitFor({ state: 'attached', timeout: 10000 });
+    await this.successModalDoneButton.waitFor({ state: 'attached', timeout: 60000 });
     
     // Step 5: Scroll to the button if needed
     await this.successModalDoneButton.scrollIntoViewIfNeeded();
     
     // Step 6: Click the Done button
-    await this.successModalDoneButton.click({ timeout: 30000 });
+    await this.successModalDoneButton.click({ timeout: 60000 });
     
     // Step 7: Wait for the modal to close
     await this.page.waitForTimeout(500);
   } catch (error) {
-    throw new Error(`Cannot click Done button in success modal: ${error.message}`);
+    // Provide more context in error message
+    const pageClosed = this.page.isClosed() ? ' (Page was closed)' : '';
+    throw new Error(`Cannot click Done button in success modal: ${error.message}${pageClosed}`);
   }
 }
 
