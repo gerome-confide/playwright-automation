@@ -303,6 +303,23 @@ async clickSubmitReportButton() {
       throw new Error('Page has been closed before submitting');
     }
     
+    // Set up network request monitoring to catch 400 errors
+    const failedRequests = [];
+    const requestListener = (request) => {
+      // Monitor failed requests
+      request.response().then(response => {
+        if (response && response.status() >= 400) {
+          failedRequests.push({
+            url: request.url(),
+            status: response.status(),
+            statusText: response.statusText()
+          });
+        }
+      }).catch(() => {});
+    };
+    
+    this.page.on('request', requestListener);
+    
     // Zoom out to 80% before clicking submit
     await this.page.evaluate(() => {
       document.body.style.zoom = '0.8';
@@ -314,8 +331,93 @@ async clickSubmitReportButton() {
     // Scroll to the button if needed
     await this.submitreportButton.scrollIntoViewIfNeeded();
     
+    // Check for actual validation errors before submitting
+    // Use more specific selectors to avoid false positives from dropdowns and labels
+    // Only check for actual error messages, not form labels or dropdown options
+    const errorMessages = await this.page.locator('.MuiFormHelperText-root.Mui-error, [class*="error-message"], [class*="validation-error"], p.MuiFormHelperText-root').allTextContents();
+    const invalidFields = await this.page.locator('input[aria-invalid="true"]:visible, textarea[aria-invalid="true"]:visible').count();
+    
+    // Filter out false positives - actual error messages are usually longer and specific
+    const realErrors = errorMessages.filter(text => {
+      const trimmed = text.trim();
+      // Real error messages are usually longer than 15 characters and don't contain form labels
+      return trimmed.length > 15 && 
+             !trimmed.match(/^\*?(Report Type|Country|Description|Model Name|Data)/i) &&
+             !trimmed.match(/^(Hazard|General|Concern|Incident|Near|Miss|Other|Unsafe|Condition|Australia|Expand|No|Yes|Outside|Employment)$/i);
+    });
+    
+    if (realErrors.length > 0) {
+      const errorText = realErrors.join(', ');
+      await this.page.screenshot({ path: 'validation-errors-before-submit.png', fullPage: true });
+      throw new Error(`Form validation errors found before submission: ${errorText}`);
+    }
+    
+    // Only warn about invalid fields, don't block submission (might be false positive)
+    if (invalidFields > 0) {
+      console.log(`Warning: Found ${invalidFields} field(s) marked as invalid`);
+    }
+    
+    // Check for empty required fields
+    const emptyRequiredInputs = await this.page.locator('input[required]:not([value]), textarea[required]:empty').count();
+    if (emptyRequiredInputs > 0) {
+      console.log(`Warning: Found ${emptyRequiredInputs} empty required fields`);
+    }
+    
+    // Wait a moment for any async validation to complete
+    await this.page.waitForTimeout(500);
+    
+    // Wait for response after clicking submit
+    const responsePromise = this.page.waitForResponse(
+      response => {
+        const url = response.url();
+        const status = response.status();
+        // Catch any 400+ errors or API/report endpoints
+        return (status >= 400) || url.includes('/reports') || url.includes('/api');
+      },
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     // Click the submit button
     await this.submitreportButton.click();
+    
+    // Wait for response
+    const response = await responsePromise;
+    
+    // Check for 400 Bad Request or other errors
+    if (response && response.status() >= 400) {
+      let responseBody = '';
+      try {
+        responseBody = await response.text();
+        // Try to parse as JSON for better error messages
+        try {
+          const jsonBody = JSON.parse(responseBody);
+          responseBody = JSON.stringify(jsonBody, null, 2);
+        } catch {
+          // Not JSON, use as is
+        }
+      } catch {
+        responseBody = 'Unable to read response body';
+      }
+      
+      await this.page.screenshot({ path: '400-error-submit.png', fullPage: true });
+      
+      // Extract error message from response if available
+      let errorMessage = `HTTP ${response.status()} ${response.statusText()} error during form submission.`;
+      errorMessage += `\nURL: ${response.url()}`;
+      errorMessage += `\nResponse body: ${responseBody.substring(0, 1000)}`;
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Check for any failed requests
+    if (failedRequests.length > 0) {
+      const errorDetails = failedRequests.map(req => `${req.status} ${req.statusText} - ${req.url}`).join(', ');
+      await this.page.screenshot({ path: 'failed-requests-submit.png', fullPage: true });
+      throw new Error(`Failed requests detected: ${errorDetails}`);
+    }
+    
+    // Remove listener
+    this.page.off('request', requestListener);
     
     // Wait for the form submission to process
     await this.page.waitForTimeout(2000);
@@ -324,7 +426,19 @@ async clickSubmitReportButton() {
     if (this.page.isClosed()) {
       throw new Error('Page was closed after form submission');
     }
+    
+    // Check for error page
+    const errorPage = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorPage = await errorPage.isVisible().catch(() => false);
+    if (isErrorPage) {
+      await this.page.screenshot({ path: 'error-page-after-submit.png', fullPage: true });
+      throw new Error('Error page appeared after form submission. Screenshot saved as error-page-after-submit.png');
+    }
   } catch (error) {
+    // Take screenshot on error
+    if (!this.page.isClosed()) {
+      await this.page.screenshot({ path: 'submit-error.png', fullPage: true }).catch(() => {});
+    }
     throw new Error(`Cannot click Submit Report button: ${error.message}`);
   }
 }
