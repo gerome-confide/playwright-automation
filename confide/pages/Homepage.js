@@ -132,34 +132,70 @@ export class HomePage {
 
 
  async navigateToCreateReportPage() {
-   try {
-     // Check if page is still open
-     if (this.page.isClosed()) {
-       throw new Error('Page has been closed');
-     }
-     
-     // Click on Reports menu item in the sidebar
-     await this.clickReportsMenu();
-     
-     // Verify page is still open before clicking Create Report
-     if (this.page.isClosed()) {
-       throw new Error('Page was closed after clicking Reports menu');
-     }
-     
-     // Click on Create Report link
-     await this.clickCreateReportLink();
-     
-     // Verify we're on the correct page
-     if (!this.page.isClosed()) {
-       const currentUrl = this.page.url();
-       if (!currentUrl.includes('/customer/reports/create-report')) {
-         console.log(`Warning: Expected to be on create-report page, but current URL is: ${currentUrl}`);
-       }
-     }
-   } catch (error) {
-     throw new Error(`Cannot Navigate to Create Report Page: ${error.message}`);
-   }
- }
+  try {
+    // Check if page is still open
+    if (this.page.isClosed()) {
+      throw new Error('Page has been closed');
+    }
+    
+    // Verify authentication before navigation - check we're not on login/error page
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/login') || currentUrl.includes('auth0.com')) {
+      throw new Error('Not authenticated - still on login/auth page. Please login first.');
+    }
+    
+    // Check for error page before navigation
+    const errorPage = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorPage = await errorPage.isVisible().catch(() => false);
+    if (isErrorPage) {
+      throw new Error('Error page detected before navigation - authentication may have failed');
+    }
+    
+    // Wait for page to be ready
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+    
+    // Click on Reports menu item in the sidebar
+    await this.clickReportsMenu();
+    
+    // Wait a bit for menu to expand
+    await this.page.waitForTimeout(500);
+    
+    // Verify page is still open and not on error page
+    if (this.page.isClosed()) {
+      throw new Error('Page was closed after clicking Reports menu');
+    }
+    
+    const errorAfterMenu = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorAfterMenu = await errorAfterMenu.isVisible().catch(() => false);
+    if (isErrorAfterMenu) {
+      throw new Error('Error page appeared after clicking Reports menu');
+    }
+    
+    // Click on Create Report link
+    await this.clickCreateReportLink();
+    
+    // Wait for navigation to complete
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    
+    // Verify we're on the correct page and not on error page
+    if (!this.page.isClosed()) {
+      const finalUrl = this.page.url();
+      
+      // Check for error page
+      const errorOnReportPage = this.page.locator('text="Oops!, something went wrong"');
+      const isErrorOnReportPage = await errorOnReportPage.isVisible().catch(() => false);
+      if (isErrorOnReportPage) {
+        throw new Error('Error page appeared on create report page - authentication may have expired');
+      }
+      
+      if (!finalUrl.includes('/customer/reports/create-report')) {
+        console.log(`Warning: Expected to be on create-report page, but current URL is: ${finalUrl}`);
+      }
+    }
+  } catch (error) {
+    throw new Error(`Cannot Navigate to Create Report Page: ${error.message}`);
+  }
+}
 
  ////////////////////////////////////////////////////////
  //////Health and Safety Report Form function here///////

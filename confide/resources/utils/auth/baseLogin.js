@@ -70,6 +70,26 @@ export class BaseLogin {
     
     // Wait for dashboard URL to load
     await this.commonResources.waitForURLToBeLoaded(dashboardUrl, timeout);
+    
+    // Wait for page to be fully loaded and authenticated
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    
+    // Verify authentication by checking for common authenticated elements
+    // Wait a bit for session/cookies to be properly set
+    await this.page.waitForTimeout(1000);
+    
+    // Verify we're actually authenticated (not on login page or error page)
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/login') || currentUrl.includes('auth0.com')) {
+      throw new Error(`Login failed - still on login/auth page: ${currentUrl}`);
+    }
+    
+    // Check for error page
+    const errorPage = this.page.locator('text="Oops!, something went wrong"');
+    const isErrorPage = await errorPage.isVisible().catch(() => false);
+    if (isErrorPage) {
+      throw new Error('Error page appeared after login - authentication may have failed');
+    }
   }
 
   /**
