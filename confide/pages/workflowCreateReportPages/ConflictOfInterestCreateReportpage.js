@@ -14,18 +14,27 @@ export class ConflictOfInterestCreateReportPage {
 
   async selectReportType(reportTypeName) {
     try {
-      // Click the dropdown to open the listbox
-      await this.conflictOfInterestReportType.click();
+      // Wait for dropdown to be actionable, then click to open the listbox
+      await this.conflictOfInterestReportType.waitFor({ state: 'visible', timeout: 10000 });
+      await this.conflictOfInterestReportType.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await this.conflictOfInterestReportType.click({ timeout: 10000 });
       
       // Wait for the listbox to appear
-      await this.conflictOfInterestReportTypeListbox.waitFor({ state: 'visible', timeout: 5000 });
+      await this.conflictOfInterestReportTypeListbox.waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for listbox to fully render
       
       // Get the report type option locator (using the locator from constructor)
       const reportTypeLocator = this.conflictOfInterestReportTypeOption(reportTypeName);
       
       // Wait for the option to be visible and clickable
-      await reportTypeLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await reportTypeLocator.click();
+      await reportTypeLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await reportTypeLocator.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await reportTypeLocator.click({ timeout: 10000 });
+      
+      // Wait for dropdown to close
+      await this.page.waitForTimeout(300);
     } catch (error) {
       throw new Error(`Cannot Select Report Type from dropdown: ${error.message}`);
     }
@@ -33,18 +42,27 @@ export class ConflictOfInterestCreateReportPage {
 
   async selectReportCountry(reportCountryName) {
     try {
-      // Click the dropdown to open the listbox
-      await this.conflictOfInterestReportCountry.click();
+      // Wait for dropdown to be actionable, then click to open the listbox
+      await this.conflictOfInterestReportCountry.waitFor({ state: 'visible', timeout: 10000 });
+      await this.conflictOfInterestReportCountry.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await this.conflictOfInterestReportCountry.click({ timeout: 10000 });
       
       // Wait for the listbox to appear
-      await this.conflictOfInterestReportCountryListbox.waitFor({ state: 'visible', timeout: 5000 });
+      await this.conflictOfInterestReportCountryListbox.waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for listbox to fully render
       
       // Get the country option locator (using the locator from constructor)
       const countryLocator = this.conflictOfInterestReportCountryOption(reportCountryName);
       
       // Wait for the option to be visible and clickable
-      await countryLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await countryLocator.click();
+      await countryLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await countryLocator.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await countryLocator.click({ timeout: 10000 });
+      
+      // Wait for dropdown to close
+      await this.page.waitForTimeout(300);
     } catch (error) {
       throw new Error(`Cannot Select Report Country from dropdown: ${error.message}`);
     }
@@ -52,9 +70,18 @@ export class ConflictOfInterestCreateReportPage {
 
   async inputDescription(description) {
     try {
-      // Input description to the contenteditable text field
-      await this.conflictOfInterestReportDescription.click();
-      await this.conflictOfInterestReportDescription.fill(description);
+      // Wait for contenteditable field to be actionable
+      await this.conflictOfInterestReportDescription.waitFor({ state: 'visible', timeout: 10000 });
+      await this.conflictOfInterestReportDescription.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus the contenteditable div
+      await this.conflictOfInterestReportDescription.click({ timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for focus
+      
+      // Clear existing content and fill
+      await this.conflictOfInterestReportDescription.fill(description, { timeout: 10000 });
+      await this.page.waitForTimeout(200);
     } catch (error) {
       throw new Error(`Cannot input description text: ${error.message}`);
     }

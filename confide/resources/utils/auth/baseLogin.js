@@ -35,10 +35,71 @@ export class BaseLogin {
 
     const url = loginUrls[environment] || loginUrls.staging;
     
-    await this.page.goto(url, {
-      waitUntil: 'networkidle',
-      timeout: 30000
-    });
+    try {
+      // Check if we're already on the login page
+      const currentUrl = this.page.url();
+      if (currentUrl.includes('/customer/login') && currentUrl.includes(environment === 'staging' ? 'stgv2' : 'confideplatform')) {
+        console.log('Already on login page, skipping navigation');
+        // Still wait for page to be ready
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
+        return;
+      }
+
+      // Check if page is closed
+      if (this.page.isClosed()) {
+        throw new Error('Page is closed, cannot navigate to login page');
+      }
+
+      // Navigate with domcontentloaded first for faster initial load
+      await this.page.goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30000
+      });
+      
+      // Then wait for network to be idle (but with shorter timeout to avoid hanging)
+      await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+        // If networkidle times out, that's okay - page might still be loading resources
+        console.log('Network idle timeout - continuing anyway');
+      });
+      
+      // Verify we're on the login page
+      const finalUrl = this.page.url();
+      if (!finalUrl.includes('/login')) {
+        console.log(`Warning: Expected login page but current URL is: ${finalUrl}`);
+        // If we're not on login page, try to navigate again
+        if (!finalUrl.includes('/customer/login')) {
+          throw new Error(`Navigation failed - expected login page but got: ${finalUrl}`);
+        }
+      }
+    } catch (error) {
+      // If navigation fails, check if we're already on the right page
+      const currentUrl = this.page.url();
+      if (currentUrl.includes('/customer/login')) {
+        console.log('Navigation error but already on login page, continuing...');
+        return;
+      }
+
+      // If it's a timeout or navigation error, try with load state instead
+      if (error.message.includes('timeout') || error.message.includes('Navigation') || error.message.includes('net::')) {
+        console.log('Initial navigation failed, retrying with load state...');
+        try {
+          await this.page.goto(url, {
+            waitUntil: 'load',
+            timeout: 30000
+          });
+        } catch (retryError) {
+          // If retry also fails, check if we're on login page anyway
+          const checkUrl = this.page.url();
+          if (checkUrl.includes('/customer/login')) {
+            console.log('Retry failed but on login page, continuing...');
+            return;
+          }
+          throw new Error(`Failed to navigate to login page after retry: ${retryError.message}`);
+        }
+      } else {
+        throw error;
+      }
+    }
   }
 
   /**

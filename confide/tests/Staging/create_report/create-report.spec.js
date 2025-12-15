@@ -12,8 +12,17 @@ test.describe.serial('Create Report Scenario Staging', () => {
   let page;
   let commonresource;
   let baseLogin;
+  let testCounter = 0; // Track test number for pause logic
 
   test.beforeEach(async ({ browser }) => {
+    testCounter++; // Increment counter for each test
+    
+    // Add 10-second pause for every other test (2nd, 4th, 6th, etc.)
+    if (testCounter % 2 === 0) {
+      console.log(`Pausing for 10 seconds before test ${testCounter}...`);
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      console.log(`Resuming test ${testCounter}`);
+    }
     // create a single browser context & page that will be shared by tests
     context = await browser.newContext({
       // Clear any existing cookies/session data

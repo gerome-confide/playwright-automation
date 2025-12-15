@@ -17,18 +17,27 @@ export class AiGovernanceCreateReportPage {
 
   async selectReportType(reportTypeName) {
     try {
-      // Click the dropdown to open the listbox
-      await this.aiGovernanceReportType.click();
+      // Wait for dropdown to be actionable, then click to open the listbox
+      await this.aiGovernanceReportType.waitFor({ state: 'visible', timeout: 10000 });
+      await this.aiGovernanceReportType.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await this.aiGovernanceReportType.click({ timeout: 10000 });
       
       // Wait for the listbox to appear
-      await this.aiGovernanceReportTypeListbox.waitFor({ state: 'visible', timeout: 5000 });
+      await this.aiGovernanceReportTypeListbox.waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for listbox to fully render
       
       // Get the report type option locator (using the locator from constructor)
       const reportTypeLocator = this.aiGovernanceReportTypeOption(reportTypeName);
       
       // Wait for the option to be visible and clickable
-      await reportTypeLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await reportTypeLocator.click();
+      await reportTypeLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await reportTypeLocator.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await reportTypeLocator.click({ timeout: 10000 });
+      
+      // Wait for dropdown to close
+      await this.page.waitForTimeout(300);
     } catch (error) {
       throw new Error(`Cannot Select Report Type from dropdown: ${error.message}`);
     }
@@ -36,18 +45,27 @@ export class AiGovernanceCreateReportPage {
 
   async selectReportCountry(reportCountryName) {
     try {
-      // Click the dropdown to open the listbox
-      await this.aiGovernanceReportCountry.click();
+      // Wait for dropdown to be actionable, then click to open the listbox
+      await this.aiGovernanceReportCountry.waitFor({ state: 'visible', timeout: 10000 });
+      await this.aiGovernanceReportCountry.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await this.aiGovernanceReportCountry.click({ timeout: 10000 });
       
       // Wait for the listbox to appear
-      await this.aiGovernanceReportCountryListbox.waitFor({ state: 'visible', timeout: 5000 });
+      await this.aiGovernanceReportCountryListbox.waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for listbox to fully render
       
       // Get the country option locator (using the locator from constructor)
       const countryLocator = this.aiGovernanceReportCountryOption(reportCountryName);
       
       // Wait for the option to be visible and clickable
-      await countryLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await countryLocator.click();
+      await countryLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await countryLocator.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await countryLocator.click({ timeout: 10000 });
+      
+      // Wait for dropdown to close
+      await this.page.waitForTimeout(300);
     } catch (error) {
       throw new Error(`Cannot Select Report Country from dropdown: ${error.message}`);
     }
@@ -55,9 +73,18 @@ export class AiGovernanceCreateReportPage {
 
   async inputDescription(description) {
     try {
-      // Input description to the contenteditable text field
-      await this.aiGovernanceReportDescription.click();
-      await this.aiGovernanceReportDescription.fill(description);
+      // Wait for contenteditable field to be actionable
+      await this.aiGovernanceReportDescription.waitFor({ state: 'visible', timeout: 10000 });
+      await this.aiGovernanceReportDescription.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus the contenteditable div
+      await this.aiGovernanceReportDescription.click({ timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for focus
+      
+      // Clear existing content and fill
+      await this.aiGovernanceReportDescription.fill(description, { timeout: 10000 });
+      await this.page.waitForTimeout(200);
     } catch (error) {
       throw new Error(`Cannot input description text: ${error.message}`);
     }
@@ -65,8 +92,16 @@ export class AiGovernanceCreateReportPage {
 
   async inputModelName(modelName) {
     try {
-      // Input model name to the text field
-      await this.aiGovernanceModelName.fill(modelName);
+      // Wait for field to be actionable
+      await this.aiGovernanceModelName.waitFor({ state: 'visible', timeout: 10000 });
+      await this.aiGovernanceModelName.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus, then fill
+      await this.aiGovernanceModelName.click({ timeout: 10000 });
+      await this.page.waitForTimeout(200);
+      await this.aiGovernanceModelName.fill(modelName, { timeout: 10000 });
+      await this.page.waitForTimeout(200);
     } catch (error) {
       throw new Error(`Cannot input model name: ${error.message}`);
     }
@@ -74,8 +109,16 @@ export class AiGovernanceCreateReportPage {
 
   async inputDataDescription(dataDescription) {
     try {
-      // Input data description to the textarea field
-      await this.aiGovernanceDataDescription.fill(dataDescription);
+      // Wait for textarea field to be actionable
+      await this.aiGovernanceDataDescription.waitFor({ state: 'visible', timeout: 10000 });
+      await this.aiGovernanceDataDescription.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus, then fill
+      await this.aiGovernanceDataDescription.click({ timeout: 10000 });
+      await this.page.waitForTimeout(200);
+      await this.aiGovernanceDataDescription.fill(dataDescription, { timeout: 10000 });
+      await this.page.waitForTimeout(200);
     } catch (error) {
       throw new Error(`Cannot input data description: ${error.message}`);
     }

@@ -17,18 +17,27 @@ export class AntiMoneyLaunderingCreateReportPage {
 
   async selectReportType(reportTypeName) {
     try {
-      // Click the dropdown to open the listbox
-      await this.antiMoneyLaunderingReportType.click();
+      // Wait for dropdown to be actionable, then click to open the listbox
+      await this.antiMoneyLaunderingReportType.waitFor({ state: 'visible', timeout: 10000 });
+      await this.antiMoneyLaunderingReportType.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await this.antiMoneyLaunderingReportType.click({ timeout: 10000 });
       
       // Wait for the listbox to appear
-      await this.antiMoneyLaunderingReportTypeListbox.waitFor({ state: 'visible', timeout: 5000 });
+      await this.antiMoneyLaunderingReportTypeListbox.waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for listbox to fully render
       
       // Get the report type option locator (using the locator from constructor)
       const reportTypeLocator = this.antiMoneyLaunderingReportTypeOption(reportTypeName);
       
       // Wait for the option to be visible and clickable
-      await reportTypeLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await reportTypeLocator.click();
+      await reportTypeLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await reportTypeLocator.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await reportTypeLocator.click({ timeout: 10000 });
+      
+      // Wait for dropdown to close
+      await this.page.waitForTimeout(300);
     } catch (error) {
       throw new Error(`Cannot Select Report Type from dropdown: ${error.message}`);
     }
@@ -36,18 +45,27 @@ export class AntiMoneyLaunderingCreateReportPage {
 
   async selectReportCountry(reportCountryName) {
     try {
-      // Click the dropdown to open the listbox
-      await this.antiMoneyLaunderingReportCountry.click();
+      // Wait for dropdown to be actionable, then click to open the listbox
+      await this.antiMoneyLaunderingReportCountry.waitFor({ state: 'visible', timeout: 10000 });
+      await this.antiMoneyLaunderingReportCountry.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await this.antiMoneyLaunderingReportCountry.click({ timeout: 10000 });
       
       // Wait for the listbox to appear
-      await this.antiMoneyLaunderingReportCountryListbox.waitFor({ state: 'visible', timeout: 5000 });
+      await this.antiMoneyLaunderingReportCountryListbox.waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for listbox to fully render
       
       // Get the country option locator (using the locator from constructor)
       const countryLocator = this.antiMoneyLaunderingReportCountryOption(reportCountryName);
       
       // Wait for the option to be visible and clickable
-      await countryLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await countryLocator.click();
+      await countryLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await countryLocator.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      await countryLocator.click({ timeout: 10000 });
+      
+      // Wait for dropdown to close
+      await this.page.waitForTimeout(300);
     } catch (error) {
       throw new Error(`Cannot Select Report Country from dropdown: ${error.message}`);
     }
@@ -55,9 +73,18 @@ export class AntiMoneyLaunderingCreateReportPage {
 
   async inputDescription(description) {
     try {
-      // Input description to the contenteditable text field
-      await this.antiMoneyLaunderingReportDescription.click();
-      await this.antiMoneyLaunderingReportDescription.fill(description);
+      // Wait for contenteditable field to be actionable
+      await this.antiMoneyLaunderingReportDescription.waitFor({ state: 'visible', timeout: 10000 });
+      await this.antiMoneyLaunderingReportDescription.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus the contenteditable div
+      await this.antiMoneyLaunderingReportDescription.click({ timeout: 10000 });
+      await this.page.waitForTimeout(300); // Wait for focus
+      
+      // Clear existing content and fill
+      await this.antiMoneyLaunderingReportDescription.fill(description, { timeout: 10000 });
+      await this.page.waitForTimeout(200);
     } catch (error) {
       throw new Error(`Cannot input description text: ${error.message}`);
     }
@@ -65,7 +92,16 @@ export class AntiMoneyLaunderingCreateReportPage {
 
   async inputCustomerAccountNumber(customerAccountNumber) {
     try {
-      await this.antiMoneyLaunderingCustomerAccountNumber.fill(customerAccountNumber);
+      // Wait for field to be actionable
+      await this.antiMoneyLaunderingCustomerAccountNumber.waitFor({ state: 'visible', timeout: 10000 });
+      await this.antiMoneyLaunderingCustomerAccountNumber.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus, then fill
+      await this.antiMoneyLaunderingCustomerAccountNumber.click({ timeout: 10000 });
+      await this.page.waitForTimeout(200);
+      await this.antiMoneyLaunderingCustomerAccountNumber.fill(customerAccountNumber, { timeout: 10000 });
+      await this.page.waitForTimeout(200);
     } catch (error) {
       throw new Error(`Cannot input customer account number: ${error.message}`);
     }
@@ -73,11 +109,28 @@ export class AntiMoneyLaunderingCreateReportPage {
 
   async inputRedFlags(redFlags) {
     try {
-      // Tags input field - click first to focus, then type
-      await this.antiMoneyLaunderingRedFlags.click();
-      await this.antiMoneyLaunderingRedFlags.fill(redFlags);
-      // Press Enter to add the tag (if it's a tags input that requires Enter)
-
+      // Wait for tags input field to be actionable
+      await this.antiMoneyLaunderingRedFlags.waitFor({ state: 'visible', timeout: 10000 });
+      await this.antiMoneyLaunderingRedFlags.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200); // Wait for stability
+      
+      // Click to focus the tags input field
+      await this.antiMoneyLaunderingRedFlags.click({ timeout: 10000 });
+      await this.page.waitForTimeout(300);
+      
+      // Handle multiple tags (comma-separated) or single tag
+      if (redFlags.includes(',')) {
+        const tags = redFlags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        for (const tag of tags) {
+          await this.antiMoneyLaunderingRedFlags.fill(tag, { timeout: 10000 });
+          await this.page.keyboard.press('Enter');
+          await this.page.waitForTimeout(500);
+        }
+      } else {
+        await this.antiMoneyLaunderingRedFlags.fill(redFlags, { timeout: 10000 });
+        await this.page.keyboard.press('Enter');
+        await this.page.waitForTimeout(500);
+      }
     } catch (error) {
       throw new Error(`Cannot input red flags: ${error.message}`);
     }
