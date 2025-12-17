@@ -13,9 +13,9 @@ export class GiftsAndEntertainmentCreateReportPage {
     this.giftsAndEntertainmentGiftTypeOption = (giftTypeName) => page.locator(`ul[role="listbox"].Mui-expanded li[role="option"]:has-text("${giftTypeName}")`).first();
     this.giftsAndEntertainmentDateField = page.locator('//label[.//text()[contains(., "Date of gift/entertainment")]]/following::button[@data-slot="control"][1]').or(page.locator('//label[.//text()[contains(., "Date of gift/entertainment")]]/following::button[@aria-haspopup="dialog"][1]').or(page.locator('//label[.//text()[contains(., "Date of gift/entertainment")]]/following::button[@type="button"][1]')));
     this.datePickerDialog = page.locator('[role="dialog"]').filter({ has: page.locator('button[name="day"]') });
-    this.calendarMonthYear = page.locator('[role="dialog"] button[aria-label*="calendar"]').or(page.locator('[role="dialog"] button:has-text("December")').or(page.locator('[role="dialog"] .MuiPickersCalendarHeader-label')));
-    this.calendarPreviousMonth = page.locator('[role="dialog"] button[aria-label*="previous"]').or(page.locator('[role="dialog"] button[aria-label*="Previous"]'));
-    this.calendarNextMonth = page.locator('[role="dialog"] button[aria-label*="next"]').or(page.locator('[role="dialog"] button[aria-label*="Next"]'));
+    // this.calendarMonthYear = page.locator('[role="dialog"] button[aria-label*="calendar"]').or(page.locator('[role="dialog"] button:has-text("December")').or(page.locator('[role="dialog"] .MuiPickersCalendarHeader-label')));
+    // this.calendarPreviousMonth = page.locator('[role="dialog"] button[aria-label*="previous"]').or(page.locator('[role="dialog"] button[aria-label*="Previous"]'));
+    // this.calendarNextMonth = page.locator('[role="dialog"] button[aria-label*="next"]').or(page.locator('[role="dialog"] button[aria-label*="Next"]'));
     this.calendarDayButton = (day) => page.locator(`[role="dialog"] button[name="day"]:has-text("${day}")`).or(page.locator(`[role="dialog"] button[aria-label*="${day}"]`));
     this.giftsAndEntertainmentReportDescription = page.locator('div[contenteditable="true"].tiptap.ProseMirror');
     this.giftsAndEntertainmentEstimatedValue = page.locator('//label[.//text()[contains(., "Estimated value")]]/following::input[1]').or(page.locator('input[name*="custom_fields"][name*="estimated"]').or(page.locator('input.MuiInput-input[aria-describedby*="helper-text"]')));
