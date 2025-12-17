@@ -6,6 +6,8 @@ import { ConflictOfInterestCreateReportPage } from '../../../pages/workflowCreat
 import { AiGovernanceCreateReportPage } from '../../../pages/workflowCreateReportPages/AiGovernanceCreateReportpage';
 import { GiftsAndEntertainmentCreateReportPage } from '../../../pages/workflowCreateReportPages/GiftsAndEntertainmentCreateReportPage';
 import { VendorDueDiligenceCreateReportPage } from '../../../pages/workflowCreateReportPages/VendorDueDiligenceCreateReportPage';
+import { WhistleblowerCreateReportPage } from '../../../pages/workflowCreateReportPages/WhistleBlowerCreateReportpage';
+import { SafeWorkPlaceCreateReportPage } from '../../../pages/workflowCreateReportPages/SafeWorkPlaceCreateReportpage';
 import { commonResources } from '../../../resources/commons/commonResources';
 import { BaseLogin } from '../../../resources/utils/auth/baseLogin';
 
@@ -282,17 +284,158 @@ test.describe.serial('Create Report Scenario Staging', () => {
   //   });
   // });
 
-  test('Create Gifts and entertainment Report', async () => {
+  // test('Create Gifts and entertainment Report', async () => {
+  //   test.setTimeout(300000);
+  //   const homePage = new HomePage(page);
+  //   const giftsAndEntertainmentPage = new GiftsAndEntertainmentCreateReportPage(page);
+
+  //   await test.step('Login as Admin', async () => {
+  //     await baseLogin.performAdminLogin('staging');
+  //   });
+
+  //   await test.step('Select Workflow from Dropdown', async () => {
+  //     await homePage.selectWorkFlowFromDropdown('Gifts and entertainment');
+  //   });
+
+  //   await test.step('Click Reports Menu', async () => {
+  //     await homePage.navigateToCreateReportPage();
+  //   });
+  //   // Add your create report test steps here
+  //   await test.step('Create Report', async () => {
+  //     // TODO: Add your create report logic here
+  //   });
+  
+  //   await test.step('Select Report Type', async () => {
+  //     await giftsAndEntertainmentPage.selectReportType('Gift Given');
+  //   });
+
+  //   await test.step('Select Report Country', async () => {
+  //     await giftsAndEntertainmentPage.selectReportCountry('Anguilla');
+  //   });
+
+  //   await test.step('Select Gift Type', async () => {
+  //     await giftsAndEntertainmentPage.selectGiftType('Travel');
+  //   });
+
+  //   await test.step('Select Date of Gift/Entertainment', async () => {
+  //     await giftsAndEntertainmentPage.selectDateOfGiftOrEntertainment();
+  //   });
+
+  //   await test.step('Input Description', async () => {
+  //     await giftsAndEntertainmentPage.inputDescription('This is an automated test for creating Gifts and Entertainment Report, please ignore and DO NOT DELETE PLEASEEE.');
+  //   });
+
+  //   await test.step('Input Estimated Value', async () => {
+  //     await giftsAndEntertainmentPage.inputEstimatedValue('100000');
+  //   });
+
+  //   await test.step('Input Who Made Offer', async () => {
+  //     await giftsAndEntertainmentPage.inputWhoMadeOffer('Gerome Fernandez');
+  //   });
+
+  //   await test.step('Click Submit Report Button', async () => {
+  //     await homePage.clickSubmitReportButton();
+  //   });
+
+  //   await test.step('Click Success Modal Done Button', async () => {
+  //     await homePage.clickSuccessModalDoneButton();
+  //   });
+
+  //   await test.step('Click Logout Button', async () => {
+  //     await homePage.clickLogout();
+  //   });
+  // });
+
+  // test('Create Vendor due diligence Report', async () => {
+  //   test.setTimeout(300000);
+  //   const homePage = new HomePage(page);
+  //   const vendorDueDiligencePage = new VendorDueDiligenceCreateReportPage(page);
+
+  //   await test.step('Login as Admin', async () => {
+  //     await baseLogin.performAdminLogin('staging');
+  //   });
+
+  //   await test.step('Select Workflow from Dropdown', async () => {
+  //     await homePage.selectWorkFlowFromDropdown('Vendor due diligence');
+  //   });
+
+  //   await test.step('Click Reports Menu', async () => {
+  //     await homePage.navigateToCreateReportPage();
+  //   });
+  //   // Add your create report test steps here
+  //   await test.step('Create Report', async () => {
+  //     // TODO: Add your create report logic here
+  //   });
+  
+  //   await test.step('Select Report Type', async () => {
+  //     await vendorDueDiligencePage.selectReportType('New Vendor Onboarding');
+  //   });
+
+  //   await test.step('Select Report Country', async () => {
+  //     await vendorDueDiligencePage.selectReportCountry('Vietnam');
+  //   });
+
+  //   await test.step('Input Company Name', async () => {
+  //     await vendorDueDiligencePage.inputCompanyName('Test Bike Company');
+  //   });
+
+  //   await test.step('Input Contact Person', async () => {
+  //     await vendorDueDiligencePage.inputContactPerson('Gerome Fernandez');
+  //   });
+
+  //   await test.step('Input Contact Email', async () => {
+  //     await vendorDueDiligencePage.inputContactEmail('gerome.fernandez@test.com');
+  //   });
+
+  //   await test.step('Input Description', async () => {
+  //     await vendorDueDiligencePage.inputDescription('This is an automated test for creating Vendor due diligence Report, please ignore and DO NOT DELETE PLEASEEE.');
+  //   });
+
+  //   await test.step('Check Data Security Certification', async () => {
+  //     await vendorDueDiligencePage.checkDataSecurityCertification('ISO 27001');
+  //   });
+
+  //   await test.step('Select Business Continuity Plan', async () => {
+  //     await vendorDueDiligencePage.selectBusinessContinuityPlan('Yes');
+  //   });
+
+  //   await test.step('Select Disaster Recovery Plan', async () => {
+  //     await vendorDueDiligencePage.selectDisasterRecoveryPlan('No');
+  //   });
+
+  //   await test.step('Select Cyber Security Insurance', async () => {
+  //     await vendorDueDiligencePage.selectCyberSecurityInsurance('No');
+  //   });
+
+  //   await test.step('Select Incident Response Plan', async () => {
+  //     await vendorDueDiligencePage.selectIncidentResponsePlan('Yes');
+  //   });
+
+  //   await test.step('Click Submit Report Button', async () => {
+  //     await homePage.clickSubmitReportButton();
+  //   });
+
+  //   await test.step('Click Success Modal Done Button', async () => {
+  //     await homePage.clickSuccessModalDoneButton();
+  //   });
+
+  //   await test.step('Click Logout Button', async () => {
+  //     await homePage.clickLogout();
+  //   });
+  // });
+  
+
+  test('Create Whistleblower Report', async () => {
     test.setTimeout(300000);
     const homePage = new HomePage(page);
-    const giftsAndEntertainmentPage = new GiftsAndEntertainmentCreateReportPage(page);
+    const whistleblowerPage = new WhistleblowerCreateReportPage(page);
 
     await test.step('Login as Admin', async () => {
       await baseLogin.performAdminLogin('staging');
     });
 
     await test.step('Select Workflow from Dropdown', async () => {
-      await homePage.selectWorkFlowFromDropdown('Gifts and entertainment');
+      await homePage.selectWorkFlowFromDropdown('Whistleblower');
     });
 
     await test.step('Click Reports Menu', async () => {
@@ -302,33 +445,21 @@ test.describe.serial('Create Report Scenario Staging', () => {
     await test.step('Create Report', async () => {
       // TODO: Add your create report logic here
     });
-  
+
     await test.step('Select Report Type', async () => {
-      await giftsAndEntertainmentPage.selectReportType('Gift Given');
+      await whistleblowerPage.selectReportType('Policy Breach');
     });
 
     await test.step('Select Report Country', async () => {
-      await giftsAndEntertainmentPage.selectReportCountry('Anguilla');
+      await whistleblowerPage.selectReportCountry('Philippines');
     });
 
-    await test.step('Select Gift Type', async () => {
-      await giftsAndEntertainmentPage.selectGiftType('Travel');
+    await test.step('Input Reporter Name', async () => {
+      await whistleblowerPage.inputReporterName('Gerome Fernandez');
     });
 
-    await test.step('Select Date of Gift/Entertainment', async () => {
-      await giftsAndEntertainmentPage.selectDateOfGiftOrEntertainment();
-    });
-
-    await test.step('Input Description', async () => {
-      await giftsAndEntertainmentPage.inputDescription('This is an automated test for creating Gifts and Entertainment Report, please ignore and DO NOT DELETE PLEASEEE.');
-    });
-
-    await test.step('Input Estimated Value', async () => {
-      await giftsAndEntertainmentPage.inputEstimatedValue('100000');
-    });
-
-    await test.step('Input Who Made Offer', async () => {
-      await giftsAndEntertainmentPage.inputWhoMadeOffer('Gerome Fernandez');
+    await test.step('Input Description', async () => { 
+      await whistleblowerPage.inputDescription('This is an automated test for creating Whistleblower Report, please ignore and DO NOT DELETE PLEASEEE.');
     });
 
     await test.step('Click Submit Report Button', async () => {
@@ -344,17 +475,17 @@ test.describe.serial('Create Report Scenario Staging', () => {
     });
   });
 
-  test('Create Vendor due diligence Report', async () => {
+  test('Create Safe workplace Report', async () => {
     test.setTimeout(300000);
     const homePage = new HomePage(page);
-    const vendorDueDiligencePage = new VendorDueDiligenceCreateReportPage(page);
+    const safeWorkplacePage = new SafeWorkPlaceCreateReportPage(page);
 
     await test.step('Login as Admin', async () => {
       await baseLogin.performAdminLogin('staging');
     });
 
     await test.step('Select Workflow from Dropdown', async () => {
-      await homePage.selectWorkFlowFromDropdown('Vendor due diligence');
+      await homePage.selectWorkFlowFromDropdown('Safe workplace');
     });
 
     await test.step('Click Reports Menu', async () => {
@@ -364,49 +495,17 @@ test.describe.serial('Create Report Scenario Staging', () => {
     await test.step('Create Report', async () => {
       // TODO: Add your create report logic here
     });
-  
+
     await test.step('Select Report Type', async () => {
-      await vendorDueDiligencePage.selectReportType('New Vendor Onboarding');
+      await safeWorkplacePage.selectReportType('Workplace Culture');
     });
 
     await test.step('Select Report Country', async () => {
-      await vendorDueDiligencePage.selectReportCountry('Vietnam');
+      await safeWorkplacePage.selectReportCountry('Australia');
     });
 
-    await test.step('Input Company Name', async () => {
-      await vendorDueDiligencePage.inputCompanyName('Test Bike Company');
-    });
-
-    await test.step('Input Contact Person', async () => {
-      await vendorDueDiligencePage.inputContactPerson('Gerome Fernandez');
-    });
-
-    await test.step('Input Contact Email', async () => {
-      await vendorDueDiligencePage.inputContactEmail('gerome.fernandez@test.com');
-    });
-
-    await test.step('Input Description', async () => {
-      await vendorDueDiligencePage.inputDescription('This is an automated test for creating Vendor due diligence Report, please ignore and DO NOT DELETE PLEASEEE.');
-    });
-
-    await test.step('Check Data Security Certification', async () => {
-      await vendorDueDiligencePage.checkDataSecurityCertification('ISO 27001');
-    });
-
-    await test.step('Select Business Continuity Plan', async () => {
-      await vendorDueDiligencePage.selectBusinessContinuityPlan('Yes');
-    });
-
-    await test.step('Select Disaster Recovery Plan', async () => {
-      await vendorDueDiligencePage.selectDisasterRecoveryPlan('No');
-    });
-
-    await test.step('Select Cyber Security Insurance', async () => {
-      await vendorDueDiligencePage.selectCyberSecurityInsurance('No');
-    });
-
-    await test.step('Select Incident Response Plan', async () => {
-      await vendorDueDiligencePage.selectIncidentResponsePlan('Yes');
+    await test.step('Input Description', async () => { 
+      await safeWorkplacePage.inputDescription('This is an automated test for creating Safe workplace Report, please ignore and DO NOT DELETE PLEASEEE.');
     });
 
     await test.step('Click Submit Report Button', async () => {
@@ -421,27 +520,6 @@ test.describe.serial('Create Report Scenario Staging', () => {
       await homePage.clickLogout();
     });
   });
-  
-
-  // test('Create Whistleblower Report', async () => {
-  //   test.setTimeout(300000);
-  //   const homePage = new HomePage(page);
-  //   const giftsAndEntertainmentPage = new GiftsAndEntertainmentCreateReportPage(page);
-
-  //   await test.step('Login as Admin', async () => {
-  //     await baseLogin.performAdminLogin('staging');
-  //   });
-  // });
-
-  // test('Create Safe workplace Report', async () => {
-  //   test.setTimeout(300000);
-  //   const homePage = new HomePage(page);
-  //   const giftsAndEntertainmentPage = new GiftsAndEntertainmentCreateReportPage(page);
-
-  //   await test.step('Login as Admin', async () => {
-  //     await baseLogin.performAdminLogin('staging');
-  //   });
-  // });
 
   // test('Create Fraud and suspicious activity Report', async () => {
   //   test.setTimeout(300000);
